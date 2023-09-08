@@ -2,6 +2,7 @@ package com.bcnc.bcncprueba.application.controller;
 
 import com.bcnc.bcncprueba.application.dto.PriceResponseDTO;
 import com.bcnc.bcncprueba.domain.entity.Price;
+import com.bcnc.bcncprueba.excepciones.PriceNotFoundException;
 import com.bcnc.bcncprueba.ports.service.PriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class PriceController {
                                                      @RequestParam Long brandId) {
         Price price = priceService.getPrice(applicationDate, productId, brandId);
         if(price == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            throw new PriceNotFoundException("No se encontró el precio para los criterios proporcionados");
         }
         PriceResponseDTO response = new PriceResponseDTO(price);
         return ResponseEntity.ok(response);

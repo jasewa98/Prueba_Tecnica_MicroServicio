@@ -2,6 +2,7 @@ package com.bcnc.bcncprueba;
 
 import com.bcnc.bcncprueba.domain.entity.Price;
 import com.bcnc.bcncprueba.domain.service.PriceServiceImpl;
+import com.bcnc.bcncprueba.excepciones.PriceNotFoundException;
 import com.bcnc.bcncprueba.ports.repository.PriceRepository;
 import com.bcnc.bcncprueba.ports.service.PriceService;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,7 @@ import org.springframework.test.context.TestPropertySource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -103,6 +104,24 @@ class BcncPruebaApplicationTests {
         Price priceResponseDTO = priceService.getPrice(dateTime, brandId, productId);
         assertNotNull(priceResponseDTO);
 
+    }
+
+    @Test
+    @DisplayName("Test for PriceNotFoundException")
+    public void testPriceNotFound() {
+        LocalDateTime dateTime = LocalDateTime.parse("2020-06-17 10:00:00", formatter);
+        Long brandId = 1L;
+        Long productId = 5L;
+
+        when(priceRepository.findPriceByDateTimeBrandAndProduct(dateTime, brandId, productId)).thenReturn(null);
+
+        Exception exception = assertThrows(PriceNotFoundException.class, () -> {
+            priceService.getPrice(dateTime, brandId, productId);
+        });
+
+        String actualMessage = exception.getMessage();
+        String expectedErrorMessage = "No se encontró el precio para los criterios proporcionados";
+        assertEquals(expectedErrorMessage, actualMessage);
     }
 
 }
