@@ -2,6 +2,7 @@ package com.bcnc.bcncprueba;
 
 import com.bcnc.bcncprueba.application.controller.PriceController;
 import com.bcnc.bcncprueba.domain.entity.Price;
+import com.bcnc.bcncprueba.excepciones.PriceNotFoundException;
 import com.bcnc.bcncprueba.ports.service.PriceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,7 +66,9 @@ class PriceControllerTest {
         Long sampleProductId = 35455L;
         Long sampleBrandId = 1L;
 
-        when(priceService.getPrice(sampleDateTime, sampleProductId, sampleBrandId)).thenReturn(null);
+        // Configura el mock para lanzar la excepción
+        when(priceService.getPrice(sampleDateTime, sampleProductId, sampleBrandId))
+                .thenThrow(new PriceNotFoundException("No se encontró el precio para los criterios proporcionados"));
 
         ResultActions result = mockMvc.perform(get("/api/prices")
                 .param("applicationDate", sampleDateTime.toString())
@@ -74,5 +77,63 @@ class PriceControllerTest {
                 .contentType(MediaType.APPLICATION_JSON));
 
         result.andExpect(status().isNotFound());
+    }
+
+
+    @Test
+    void getPrice_whenPriceDoesNotExist_returnsCorrectErrorMessage() throws Exception {
+        LocalDateTime sampleDateTime = LocalDateTime.parse("2020-06-14T15:00:00");
+        Long sampleProductId = 35455L;
+        Long sampleBrandId = 1L;
+        String expectedErrorMessage = "No se encontró el precio para los criterios proporcionados";
+
+        when(priceService.getPrice(sampleDateTime, sampleProductId, sampleBrandId))
+                .thenThrow(new PriceNotFoundException(expectedErrorMessage));
+
+        ResultActions result = mockMvc.perform(get("/api/prices")
+                .param("applicationDate", sampleDateTime.toString())
+                .param("productId", sampleProductId.toString())
+                .param("brandId", sampleBrandId.toString())
+                .contentType(MediaType.APPLICATION_JSON));
+
+        result.andExpect(status().isNotFound())
+                .andExpect(content().string(expectedErrorMessage));
+    }
+
+    @Test
+    void getPrice_whenServiceReturnsNull_throwsPriceNotFoundException() throws Exception {
+        LocalDateTime sampleDateTime = LocalDateTime.parse("2020-06-14T15:00:00");
+        Long sampleProductId = 35455L;
+        Long sampleBrandId = 1L;
+
+        when(priceService.getPrice(sampleDateTime, sampleProductId, sampleBrandId)).thenReturn(null);
+
+        ResultActions result = mockMvc.perform(get("/api/prices")
+                .param("applicationDate", sampleDateTime.toString())
+                .param("productId", sampleProductId.toString())
+                .param("brandId", sampleBrandId.toString())
+                .contentType(MediaType.APPLICATION_JSON));
+
+        result.andExpect(status().isNotFound())
+                .andExpect(content().string("No se encontró el precio para los criterios proporcionados"));
+    }
+
+    @Test
+    void getPrice_whenUnexpectedExceptionOccurs_returnsInternalServerError() throws Exception {
+        LocalDateTime sampleDateTime = LocalDateTime.parse("2020-06-14T15:00:00");
+        Long sampleProductId = 35455L;
+        Long sampleBrandId = 1L;
+
+        when(priceService.getPrice(sampleDateTime, sampleProductId, sampleBrandId))
+                .thenThrow(new RuntimeException("Some unexpected exception"));
+
+        ResultActions result = mockMvc.perform(get("/api/prices")
+                .param("applicationDate", sampleDateTime.toString())
+                .param("productId", sampleProductId.toString())
+                .param("brandId", sampleBrandId.toString())
+                .contentType(MediaType.APPLICATION_JSON));
+
+        result.andExpect(status().isInternalServerError())
+                .andExpect(content().string("Error interno del servidor"));
     }
 }
