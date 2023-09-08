@@ -4,6 +4,7 @@ import com.bcnc.bcncprueba.domain.entity.Price;
 import com.bcnc.bcncprueba.ports.repository.PriceRepository;
 import com.bcnc.bcncprueba.ports.service.PriceService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -18,8 +19,8 @@ public class PriceServiceImpl implements PriceService {
 
 
     @Override
-    public Price getPrice(LocalDateTime applicationDate, Long productId, Long brandId) {
-        // Lógica de negocio
-        return priceRepository.findPriceByDateTimeBrandAndProduct(applicationDate, brandId, productId);
+    @Transactional
+    public Price getPrice(LocalDateTime targetDateTime, Long brandId, Long productId) {
+        return priceRepository.findPriceByDateTimeBrandAndProduct(targetDateTime, brandId, productId);
     }
 }
