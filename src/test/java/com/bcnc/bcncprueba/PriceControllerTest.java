@@ -66,7 +66,6 @@ class PriceControllerTest {
         Long sampleProductId = 35455L;
         Long sampleBrandId = 1L;
 
-        // Configura el mock para lanzar la excepción
         when(priceService.getPrice(sampleDateTime, sampleProductId, sampleBrandId))
                 .thenThrow(new PriceNotFoundException("No se encontró el precio para los criterios proporcionados"));
 
